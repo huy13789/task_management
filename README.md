@@ -13,7 +13,7 @@
 ## 🛠 Hướng Dẫn Cài Đặt (Installation)
 
 ### 1. Cài đặt
-  ### Docker, Postgrel
+  ### Docker, Postgrel, Setup uv
 
 ## 2. Khởi Chạy Dự Án (Running)
   ```bash
@@ -72,7 +72,10 @@ Hệ thống sử dụng **Traefik** làm Gateway chính điều hướng reques
 | API Gateway   | [http://localhost:8080](http://localhost:8080)   | Cổng chính (Frontend gọi vào đây)    |
 | Swagger UI    | [http://localhost:8080/docs](http://localhost:8080/docs) | Tài liệu API & Test tool     |
 | Traefik Dash  | [http://localhost:8081](http://localhost:8081)   | Dashboard quản lý Gateway            |
-| Direct API    | [http://localhost:8000](http://localhost:8000)   | Truy cập trực tiếp (Chỉ dùng Debug)  |
+| User Service    | [http://localhost:8080/user](http://localhost:8080/user)   | Truy cập User service qua Gateway  |
+| Task Service    | [http://localhost:8080/task](http://localhost:8080/task)   | Truy cập User service qua Gateway  |
+| Notification Service    | [http://localhost:8080/notification](http://localhost:8080/notification)   | Truy cập Notification service qua Gateway  |
+| Dev Direct API (User, Task, Notification)    | [http://localhost:8010, 8020, 8030]()   | Truy cập trực tiếp container (chỉ dev/debug)  |
 
 ## ✅ Tổng Hợp Lệnh Nhanh
 
