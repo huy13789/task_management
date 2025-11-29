@@ -3,17 +3,17 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# Giữ nguyên CORS để FE gọi được
+# CORS
 origins = [
-    "http://localhost:3000",      # React/Next.js
-    "*"                           # HOẶC: Chấp nhận tất cả (Chỉ dùng lúc Dev)
+    "http://localhost:3000",
+    "*"
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,        
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],          # Cho phép mọi phương thức (GET, POST, PUT, DELETE)
-    allow_headers=["*"],          # Cho phép mọi loại dữ liệu gửi lên
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.get("/")
@@ -23,3 +23,4 @@ def read_root():
 @app.get("/items")
 def read_items():
     return [{"id": 1, "name": "Item 1"}]
+

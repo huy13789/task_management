@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-app = FastAPI()
+app = FastAPI("/notification")
 
 @app.get("/")
 def read_noti():

@@ -30,9 +30,10 @@ services:
       dockerfile: Dockerfile
 
     container_name: user-service
-
+    expose:
+      - "8000"
     ports:
-      - "8000:8000"
+      - "8010:8000"
     volumes:
       - ./task_management/user-service:/app # Mã nguồn ứng dụng
       - /app/.venv      # Bức tường bảo vệ thư viện (Quan trọng)
@@ -44,9 +45,11 @@ services:
     networks:
       - app_network
     labels:
-      - "traefik.enable=true" # Kích hoạt Traefik cho dịch vụ này
-      - "traefik.http.routers.fastapi.rule=PathPrefix(`/user`)"
-      - "traefik.http.services.fastapi.loadbalancer.server.port=8000"
+      - "traefik.enable=true"
+      - "traefik.http.routers.user.rule=PathPrefix(`/user`)"
+      - "traefik.http.routers.user.middlewares=user-strip@docker"
+      - "traefik.http.middlewares.user-strip.stripprefix.prefixes=/user"
+      - "traefik.http.services.user.loadbalancer.server.port=8000"
 
   # -------------------------------------------------------
   # 3. TASK SERVICE
@@ -58,23 +61,26 @@ services:
       dockerfile: Dockerfile
 
     container_name: task-service
-
+    expose:
+      - "8000"
     ports:
-      - "8000:8000"
+      - "8020:8000"
     volumes:
       - ./task_management/task-service:/app # Mã nguồn ứng dụng
       - /app/.venv      # Bức tường bảo vệ thư viện (Quan trọng)
     environment:
       - WATCHFILES_FORCE_POLLING=true
     
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8010 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     
     networks:
       - app_network
     labels:
-      - "traefik.enable=true" # Kích hoạt Traefik cho dịch vụ này
-      - "traefik.http.routers.fastapi.rule=PathPrefix(`/task`)"
-      - "traefik.http.services.fastapi.loadbalancer.server.port=8000"
+      - "traefik.enable=true"
+      - "traefik.http.routers.task.rule=PathPrefix(`/task`)"
+      - "traefik.http.routers.task.middlewares=task-strip@docker"
+      - "traefik.http.middlewares.task-strip.stripprefix.prefixes=/task"
+      - "traefik.http.services.task.loadbalancer.server.port=8000"
 
   # -------------------------------------------------------
   # 4. NOTIFICATION SERVICE
@@ -86,23 +92,26 @@ services:
       dockerfile: Dockerfile
 
     container_name: notification-service
-
+    expose:
+      - "8000"
     ports:
-      - "8000:8000"
+      - "8030:8000"
     volumes:
       - ./task_management/notification-service:/app # Mã nguồn ứng dụng
       - /app/.venv      # Bức tường bảo vệ thư viện (Quan trọng)
     environment:
       - WATCHFILES_FORCE_POLLING=true
     
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8020 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     
     networks:
       - app_network
     labels:
-      - "traefik.enable=true" # Kích hoạt Traefik cho dịch vụ này
-      - "traefik.http.routers.fastapi.rule=PathPrefix(`/notification`)"
-      - "traefik.http.services.fastapi.loadbalancer.server.port=8000"
+      - "traefik.enable=true"
+      - "traefik.http.routers.notification.rule=PathPrefix(`/notification`)"
+      - "traefik.http.routers.notification.middlewares=task-strip@docker"
+      - "traefik.http.middlewares.notification-strip.stripprefix.prefixes=/notification"
+      - "traefik.http.services.notification.loadbalancer.server.port=8000"
 
 networks:
   app_network:
