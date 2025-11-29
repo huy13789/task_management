@@ -26,4 +26,4 @@ COPY . .
 
 # 6. Chạy server
 # Vì code đã nằm trong thư mục 'app', ta gọi app.main:app
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8010"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
