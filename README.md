@@ -78,6 +78,7 @@ Hệ thống sử dụng **Traefik** làm Gateway chính điều hướng reques
 
 | Hành động   | Lệnh                                    | Mô tả                                |
 |-------------|-----------------------------------------|--------------------------------------|
+| Khởi chạy   | `docker-compose up `                  | Chạy project          |
 | Khởi chạy   | `docker-compose up -d` ❌                 | Chạy ngầm (Background mode)          |
 | Rebuild     | `docker-compose up -d --build` 👍         | Chạy lại khi có thay đổi config/lib  |
 | Dừng        | `docker-compose down`                   | Tắt và xóa containers                |

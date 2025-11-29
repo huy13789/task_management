@@ -16,10 +16,11 @@ WORKDIR /app
 
 # 4. Copy file quản lý thư viện và cài đặt
 COPY pyproject.toml uv.lock ./
-# --frozen: Dùng đúng phiên bản trong lock file
-# --no-dev: Không cài thư viện dev
-RUN uv sync --frozen
 
+# --frozen: Dùng đúng phiên bản trong lock file
+#cài thư viện
+RUN uv sync --frozen
+ 
 # 5. Copy toàn bộ code nguồn
 COPY . .
 

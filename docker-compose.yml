@@ -21,27 +21,24 @@ services:
       - app_network
 
   # -------------------------------------------------------
-  # 2. ACCOUNT SERVICE
+  # 2. USER SERVICE
   # -------------------------------------------------------
-  account-service:
+  user-service:
     build:
 
-      context: ./task_management/account-service
+      context: ./task_management/user-service
       dockerfile: Dockerfile
 
-    container_name: fastapi_uv_container
+    container_name: user-service
 
     ports:
       - "8000:8000"
     volumes:
-      - ./task_management/account-service:/app # Mã nguồn ứng dụng
+      - ./task_management/user-service:/app # Mã nguồn ứng dụng
       - /app/.venv      # Bức tường bảo vệ thư viện (Quan trọng)
     environment:
       - WATCHFILES_FORCE_POLLING=true
     
-    # SỬA LẠI COMMAND:
-    # 1. Bỏ 'uv run' (vì đã set PATH trong Dockerfile)
-    # 2. Gọi đúng app.main:app (vì file main.py đã nằm trong folder app)
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     
     networks:
@@ -50,6 +47,34 @@ services:
       - "traefik.enable=true" # Kích hoạt Traefik cho dịch vụ này
       - "traefik.http.routers.fastapi.rule=PathPrefix(`/`)"
       - "traefik.http.services.fastapi.loadbalancer.server.port=8000"
+
+  # -------------------------------------------------------
+  # 2. TASK SERVICE
+  # -------------------------------------------------------
+  task-service:
+    build:
+
+      context: ./task_management/task-service
+      dockerfile: Dockerfile
+
+    container_name: task-service
+
+    ports:
+      - "8010:8010"
+    volumes:
+      - ./task_management/task-service:/app # Mã nguồn ứng dụng
+      - /app/.venv      # Bức tường bảo vệ thư viện (Quan trọng)
+    environment:
+      - WATCHFILES_FORCE_POLLING=true
+    
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8010 --reload
+    
+    networks:
+      - app_network
+    labels:
+      - "traefik.enable=true" # Kích hoạt Traefik cho dịch vụ này
+      - "traefik.http.routers.fastapi.rule=PathPrefix(`/`)"
+      - "traefik.http.services.fastapi.loadbalancer.server.port=8010"
 
 networks:
   app_network:
