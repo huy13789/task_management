@@ -25,10 +25,8 @@ services:
   # -------------------------------------------------------
   user-service:
     build:
-
       context: ./task_management/user-service
       dockerfile: Dockerfile
-
     container_name: user-service
     expose:
       - "8000"
@@ -40,10 +38,10 @@ services:
     environment:
       - WATCHFILES_FORCE_POLLING=true
       - DATABASE_URL=${DATABASE_URL}
+      - ROOT_PATH=/user
     depends_on:
       - postgres
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    
     networks:
       - app_network
     labels:
@@ -52,6 +50,12 @@ services:
       - "traefik.http.routers.user.middlewares=user-strip@docker"
       - "traefik.http.middlewares.user-strip.stripprefix.prefixes=/user"
       - "traefik.http.services.user.loadbalancer.server.port=8000"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').getcode() == 200"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
 
   # -------------------------------------------------------
   # 3. TASK SERVICE
@@ -131,7 +135,51 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - app_network 
+      - app_network
+
+  # -------------------------------------------------------
+  # 6. ZOOKEEPER 
+  # ------------------------------------------------------- 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    ports:
+      - '2181:2181'
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - app_network
+  # -------------------------------------------------------
+  # 7. KAFKA BROKER
+  # -------------------------------------------------------
+  kafka:
+    image: confluentinc/cp-kafka:7.3.2
+    ports:
+      - '9092:9092'
+      - '29092:29092'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_INTERNAL://:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - app_network
+  # -------------------------------------------------------
+  # 8. REDIS (Caching/Blacklisting/WebSocket State)
+  # -------------------------------------------------------
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
 
 networks:
   app_network:

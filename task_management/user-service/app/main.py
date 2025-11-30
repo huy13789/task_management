@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
 
-app = FastAPI()
+app = FastAPI(title="User Service", root_path="/user")
 
 # CORS
 origins = [
@@ -23,4 +24,8 @@ def read_root():
 @app.get("/items")
 def read_items():
     return [{"id": 1, "name": "Item 1"}]
+
+@app.get("/health", tags=["System"])
+def health_check():
+    return JSONResponse(content={"status": "ok", "service": "user-service"}, status_code=200)
 
