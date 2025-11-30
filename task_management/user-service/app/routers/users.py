@@ -8,7 +8,7 @@ from ..core.security import get_password_hash, get_current_user
 router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.post("/", response_model=UserResponse)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
     # 1. Kiểm tra email
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
