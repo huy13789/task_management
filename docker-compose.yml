@@ -40,7 +40,12 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - ROOT_PATH=/user
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     networks:
       - app_network
@@ -134,6 +139,11 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_user -d task_management_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - app_network
 
@@ -148,6 +158,11 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: "echo stat | nc localhost 2181 || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 5
     networks:
       - app_network
   # -------------------------------------------------------
@@ -167,7 +182,14 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
+    healthcheck:
+      # cub kafka-ready: Chờ ít nhất 1 broker sẵn sàng ở cổng 9092, timeout 20s
+      test: ["CMD", "cub", "kafka-ready", "-b", "localhost:9092", "1", "20"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
     networks:
       - app_network
   # -------------------------------------------------------
@@ -178,6 +200,13 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
     networks:
       - app_network
 
@@ -186,3 +215,4 @@ networks:
     driver: bridge
 volumes:
   postgres_data:
+  redis_data:
