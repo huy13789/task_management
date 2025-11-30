@@ -1,6 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
+from app.routers import login, users
+from .db import engine
+from .models import Base
+from .models import user as user_model
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="User Service", root_path="/user")
 
@@ -17,13 +23,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def read_root():
-    return {"message": "Trang chủ Backend"}
-
-@app.get("/items")
-def read_items():
-    return [{"id": 1, "name": "Item 1"}]
+app.include_router(login.router, prefix="/api/v1") 
+app.include_router(users.router, prefix="/api/v1")
 
 @app.get("/health", tags=["System"])
 def health_check():

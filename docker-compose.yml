@@ -34,11 +34,12 @@ services:
       - "8010:8000"
     volumes:
       - ./task_management/user-service:/app # Mã nguồn ứng dụng
-      - /app/.venv      # Bức tường bảo vệ thư viện (Quan trọng)
+      - /app/.venv
     environment:
       - WATCHFILES_FORCE_POLLING=true
       - DATABASE_URL=${DATABASE_URL}
-      - ROOT_PATH=/user
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
     depends_on:
       postgres:
         condition: service_healthy
