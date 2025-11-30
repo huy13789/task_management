@@ -83,7 +83,12 @@ services:
       - WATCHFILES_FORCE_POLLING=true
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
-      - postgres  
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     
     networks:
@@ -94,6 +99,12 @@ services:
       - "traefik.http.routers.task.middlewares=task-strip@docker"
       - "traefik.http.middlewares.task-strip.stripprefix.prefixes=/task"
       - "traefik.http.services.task.loadbalancer.server.port=8000"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').getcode() == 200"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
 
   # -------------------------------------------------------
   # 4. NOTIFICATION SERVICE
@@ -115,7 +126,12 @@ services:
       - DATABASE_URL=${DATABASE_URL}
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     networks:
       - app_network
     labels:
@@ -124,6 +140,12 @@ services:
       - "traefik.http.routers.notification.middlewares=notification-strip@docker"
       - "traefik.http.middlewares.notification-strip.stripprefix.prefixes=/notification"
       - "traefik.http.services.notification.loadbalancer.server.port=8000"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').getcode() == 200"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
 
   # -------------------------------------------------------
   # 5. POSTGRESQL DATABASE
