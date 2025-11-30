@@ -84,6 +84,6 @@ Hệ thống sử dụng **Traefik** làm Gateway chính điều hướng reques
 | Khởi chạy   | `docker-compose up `                  | Chạy project          |
 | Khởi chạy   | `docker-compose up -d` ❌                 | Chạy ngầm (Background mode)          |
 | Rebuild     | `docker-compose up -d --build` 👍         | Chạy lại khi có thay đổi config/lib  |
-| Dừng        | `docker-compose down`                   | Tắt và xóa containers                |
+| Dừng        | `docker-compose down -v`                   | Tắt và xóa containers                |
 | Xem Log     | `docker-compose logs -f`                | Theo dõi log thời gian thực          |
 | Vào Shell   | `docker-compose exec account-service bash` | SSH vào trong container           |

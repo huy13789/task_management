@@ -39,7 +39,9 @@ services:
       - /app/.venv      # Bức tường bảo vệ thư viện (Quan trọng)
     environment:
       - WATCHFILES_FORCE_POLLING=true
-    
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - postgres
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     
     networks:
@@ -70,7 +72,9 @@ services:
       - /app/.venv      # Bức tường bảo vệ thư viện (Quan trọng)
     environment:
       - WATCHFILES_FORCE_POLLING=true
-    
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - postgres  
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     
     networks:
@@ -87,10 +91,8 @@ services:
   # -------------------------------------------------------
   notification-service:
     build:
-
       context: ./task_management/notification-service
       dockerfile: Dockerfile
-
     container_name: notification-service
     expose:
       - "8000"
@@ -101,18 +103,38 @@ services:
       - /app/.venv      # Bức tường bảo vệ thư viện (Quan trọng)
     environment:
       - WATCHFILES_FORCE_POLLING=true
-    
+      - DATABASE_URL=${DATABASE_URL}
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    
+    depends_on:
+      - postgres
     networks:
       - app_network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.notification.rule=PathPrefix(`/notification`)"
-      - "traefik.http.routers.notification.middlewares=task-strip@docker"
+      - "traefik.http.routers.notification.middlewares=notification-strip@docker"
       - "traefik.http.middlewares.notification-strip.stripprefix.prefixes=/notification"
       - "traefik.http.services.notification.loadbalancer.server.port=8000"
+
+  # -------------------------------------------------------
+  # 5. POSTGRESQL DATABASE
+  # -------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: task_management_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network 
 
 networks:
   app_network:
     driver: bridge
+volumes:
+  postgres_data:
