@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Table, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from . import Base
 
@@ -11,6 +12,8 @@ class User(Base):
     
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
+
+    role = Column(String, default="user")
     
     is_active = Column(Boolean, default=True)
     
