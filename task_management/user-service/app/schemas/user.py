@@ -25,11 +25,15 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     created_at: datetime
-    
+    role: str
+
     class Config:
         from_attributes = True 
 
 # Schema Phản hồi Token (Output)
 class TokenResponse(BaseModel):
     access_token: str
-    token_type: str = "bearer"
+
+class UserUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
