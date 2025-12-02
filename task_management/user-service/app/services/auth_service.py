@@ -26,4 +26,4 @@ class AuthService:
         # 3. Tạo Token
         access_token = create_access_token(data={"sub": user.email, "id": user.id})
         
-        return TokenResponse(access_token=access_token, token_type="bearer")
+        return TokenResponse(access_token=access_token)
