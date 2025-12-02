@@ -5,7 +5,7 @@ from ..schemas.user import UserCreate, UserResponse, UserUpdate
 from ..api.deps import SessionDep, CurrentUser # Sử dụng deps.py
 from ..services.user_service import UserService
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(prefix="/users", tags=["Users Dashboard"])
 
 @router.post("/", response_model=UserResponse)
 def sign_up(user_data: UserCreate, db: SessionDep):

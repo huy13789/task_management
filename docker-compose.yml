@@ -40,6 +40,8 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - SECRET_KEY=${SECRET_KEY}
       - ALGORITHM=${ALGORITHM}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy

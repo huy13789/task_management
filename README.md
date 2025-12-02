@@ -48,19 +48,54 @@
 
 ## 🧰 Project Structure
 ```
-root/
-├── docker-compose.yml              # 🎼 Nhạc trưởng điều phối (Orchestration)
-├── .env                            # 🔑 Biến môi trường (DB, Secret Key)
-├── task_management/                # 📂 Thư mục chứa các Microservices
-│   └── account-service/            # 👤 Service Tài Khoản
-│       ├── app/                    # Source code chính
-│       │   ├── api/                # Định nghĩa Routes
-│       │   ├── core/               # Configs
-│       │   └── main.py             # Entry point
-│       ├── Dockerfile              # Cấu hình Build Docker
-│       ├── pyproject.toml          # Danh sách thư viện
-│       └── uv.lock                 # Khóa phiên bản thư viện
-└── README.md
+app/
+├── api/                        # 🛡️ TẦNG GIAO TIẾP & PHỤ THUỘC (Dependencies)
+│   ├── __init__.py
+│   └── deps.py                 # "Keo dán" của hệ thống.
+│                               # - Chứa các hàm `Depends(...)`.
+│                               # - Lấy Header/Token từ Request.
+│                               # - Gọi `auth` để giải mã Token.
+│                               # - Gọi `db` để lấy kết nối.
+│                               # - Trả về `current_user` hoặc `db_session` cho Router dùng.
+│
+├── auth/                       # 🔐 TẦNG BẢO MẬT THUẦN TÚY (Pure Security)
+│   ├── jwt.py                  # - Chỉ chứa logic: Encode & Decode Token (PyJWT).
+│   │                           # - Không biết DB là gì, không biết Request là gì.
+│   └── security.py             # - Chỉ chứa logic: Hash Password & Verify Password (Argon2).
+│
+├── core/                       # ⚙️ TẦNG CẤU HÌNH (Configuration)
+│   ├── config.py               # - Load biến môi trường (.env).
+│   │                           # - Cung cấp settings (DATABASE_URL, SECRET_KEY) cho toàn app.
+│   └── logger.py (nếu có)      # - Cấu hình định dạng log.
+│
+├── db/                         # 🔌 TẦNG KẾT NỐI (Database Connection)
+│   └── __init__.py             # - Khởi tạo `Engine` và `SessionLocal`.
+│                               # - Quản lý việc đóng/mở kết nối tới PostgreSQL.
+│
+├── models/                     # 🗄️ TẦNG DỮ LIỆU (Data Layer / ORM)
+│   ├── __init__.py             # - Base class của SQLAlchemy.
+│   └── user.py                 # - Định nghĩa cấu trúc Bảng `users` trong SQL (Cột, Kiểu dữ liệu).
+│
+├── schemas/                    # 📝 TẦNG CHUYỂN ĐỔI DỮ LIỆU (DTO / Pydantic)
+│   └── user.py                 # - Định dạng dữ liệu Đầu vào (UserCreate, UserLogin).
+│                               # - Định dạng dữ liệu Đầu ra (UserResponse).
+│                               # - Validate dữ liệu (Email đúng chuẩn, Pass đủ dài...).
+│
+├── services/                   # 🧠 TẦNG NGHIỆP VỤ (Business Logic Layer)
+│   ├── auth_service.py         # - Logic Đăng nhập (Gọi DB tìm user -> Gọi Auth check pass -> Trả Token).
+│   └── user_service.py         # - Logic User (Tạo user, Check trùng email, Update, Delete...).
+│                               # - Đây là nơi "thông minh" nhất của ứng dụng.
+│
+├── routers/                    # 🌐 TẦNG ĐIỀU PHỐI (Controller / Interface)
+│   ├── login.py                # - Endpoint: POST /login.
+│   └── users.py                # - Endpoint: POST /users/, GET /me...
+│                               # - Nhiệm vụ: Nhận Request -> Gọi Service -> Trả Response.
+│                               # - Code ở đây phải cực kỳ ngắn gọn.
+│
+└── main.py                     # 🟢 ĐIỂM KHỞI CHẠY (Entry Point)
+                                # - Khởi tạo FastAPI App.
+                                # - Gắn Middleware (CORS, Gzip).
+                                # - Gắn (Include) các Routers vào App.
 ```
 
 ## 🌐 Cổng Truy Cập (Port Mapping)
