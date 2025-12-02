@@ -9,8 +9,6 @@ from sqlalchemy.orm import Session
 from ..core.config import settings
 from ..db import get_db
 from ..models.user import User
-
-# Import hàm decode từ file jwt mới
 from ..auth.jwt import decode_access_token 
 
 # 1. Cấu hình
@@ -48,20 +46,19 @@ async def get_current_user(
         raise credentials_exception
         
     return user
-
-# Type Alias (Để dùng trong Router và RoleChecker)
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
-# 3. Class: Kiểm tra quyền (Role Checker)
 class RoleChecker:
     def __init__(self, allowed_roles: List[str]):
         self.allowed_roles = allowed_roles
 
-    # Dùng CurrentUser ở đây cho gọn
-    def __call__(self, user: CurrentUser): 
-        if getattr(user, "role", None) not in self.allowed_roles:
+    def __call__(self, user: CurrentUser):
+        if user.role not in self.allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to perform this action"
+                detail="Operation not permitted"
             )
         return user
+    
+AdminOnly = RoleChecker(allowed_roles=["admin"])
+UserAndAdmin = RoleChecker(allowed_roles=["admin", "user"])
