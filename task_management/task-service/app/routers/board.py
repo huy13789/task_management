@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, status, Query
 from fastapi.params import Query
 
-from ..schemas.board import BoardResponse, BoardCreate
+from ..schemas.board import BoardResponse, BoardCreate, BoardDetailResponse
 from ..services.board_service import BoardService
 from ..api.deps import SessionDep, CurrentUser
 router = APIRouter(prefix="/boards", tags=["Boards"])
@@ -17,7 +17,7 @@ def get_my_boards( db: SessionDep, user_id: CurrentUser, skip: int = 0, limit: i
     return BoardService(db).get_my_boards(user_id, skip, limit)
 
 
-@router.get("/{board_id}", response_model=BoardResponse)
+@router.get("/{board_id}", response_model=BoardDetailResponse)
 def get_board_details( board_id: int, db: SessionDep, user_id: CurrentUser):
     return BoardService(db).get_board_detail(board_id, user_id)
 
