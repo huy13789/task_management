@@ -70,10 +70,8 @@ services:
   # -------------------------------------------------------
   task-service:
     build:
-
       context: ./task_management/task-service
       dockerfile: Dockerfile
-
     container_name: task-service
     expose:
       - "8000"
@@ -84,7 +82,9 @@ services:
       - /app/.venv      # Bức tường bảo vệ thư viện (Quan trọng)
     environment:
       - WATCHFILES_FORCE_POLLING=true
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=${TASK_DATABASE_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
     depends_on:
       postgres:
         condition: service_healthy
@@ -159,13 +159,14 @@ services:
     environment:
       POSTGRES_USER: app_user
       POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: task_management_db
+      POSTGRES_DB: postgres
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app_user -d task_management_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
