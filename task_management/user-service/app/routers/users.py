@@ -2,8 +2,9 @@
 
 from fastapi import APIRouter, status
 from ..schemas.user import UserCreate, UserResponse, UserUpdate
-from ..api.deps import SessionDep, CurrentUser # Sử dụng deps.py
+from ..api.deps import SessionDep, CurrentUser
 from ..services.user_service import UserService
+
 
 router = APIRouter(prefix="/users", tags=["Users Dashboard"])
 
@@ -11,7 +12,7 @@ router = APIRouter(prefix="/users", tags=["Users Dashboard"])
 def sign_up(user_data: UserCreate, db: SessionDep):
     return UserService(db).create_user(user_data)
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def get_me(current_user: CurrentUser):
     return current_user
 
