@@ -7,7 +7,6 @@ from ..models.user import User
 from ..schemas.user import UserCreate # Hoặc dùng model trực tiếp
 
 def init_db(db: Session) -> None:
-    # 1. Kiểm tra xem Admin đã tồn tại chưa
     user = db.query(User).filter(User.email == settings.FIRST_SUPERUSER).first()
     
     if not user:
