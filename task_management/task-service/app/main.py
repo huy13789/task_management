@@ -6,6 +6,7 @@ from starlette.responses import JSONResponse
 # Import Database Engine
 from .db import engine
 from .models import Base
+from .routers import board
 
 from .models import task as task_model
 
@@ -32,10 +33,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- ROUTERS ---
-# (Bạn sẽ bỏ comment dòng dưới khi đã viết xong file routers/tasks.py)
-#from .routers import tasks
-#app.include_router(tasks.router, prefix="/api/v1")
+app.include_router(board.router, prefix="/api/v1")
+
 
 # --- SYSTEM API ---
 @app.get("/health", tags=["System"])
