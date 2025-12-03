@@ -183,3 +183,5 @@ Mọi đóng góp (Pull Request) đều được hoan nghênh.
 
 ## 📄 License
 [MIT](LICENSE)
+
+*Vui lòng không thương mại hóa dự án.
