@@ -1,37 +1,58 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
-from app.routers import login, users, admin
-from .db import engine
-from .models import Base
-from .models import user as user_model
-
 from contextlib import asynccontextmanager
 
-# Import các thành phần cần thiết
+# Import các router
+from app.routers import login, users, admin
+from app.core.config import settings
+
+# Import DB
 from .db import engine, SessionLocal
 from .db.init_db import init_db
 from .models import Base
 
-Base.metadata.create_all(bind=engine)
+# Import Redis & Logging
+from app.core.redis import init_redis, close_redis
+from app.core.logging import setup_logging
+
+# --- QUAN TRỌNG: Import thư viện Rate Limit ---
+from fastapi_limiter.depends import RateLimiter
+
+logger = setup_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("🚀 Starting application...")
+
+    # 1. Init Database
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        init_db(db) 
+        init_db(db)
+        logger.success("✅ Database Initialized")
+    except Exception as e:
+        logger.error(f"❌ Database Init Failed: {e}")
     finally:
         db.close()
+
+    await init_redis()
+
     yield 
 
-app = FastAPI(title="User Service",description="Service quản lý User", root_path="/user", lifespan=lifespan)
+    logger.warning("🛑 Shutting down application...")
+    
+    await close_redis() 
+
+app = FastAPI(
+    title="User Service",
+    description="Service quản lý User", 
+    root_path="/user", 
+    lifespan=lifespan
+)
 
 # CORS
-origins = [
-    "http://localhost:3000",
-    "*"
-]
+origins = ["http://localhost:3000", "*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -40,11 +61,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- ROUTER ---
 app.include_router(login.router, prefix="/api/v1") 
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 
+
+# --- KHU VỰC API TEST RATE LIMIT (BẠN ĐANG THIẾU ĐOẠN NÀY) ---
+
+async def get_user_id_demo(request: Request):
+    # Lấy ID từ header, nếu không có thì lấy IP
+    return request.headers.get("x-user-id", "ip:" + request.client.host)
+
+# Giới hạn: 2 lần / 60 giây
+@app.get("/test-rate-limit", dependencies=[Depends(RateLimiter(times=2, seconds=60, identifier=get_user_id_demo))])
+async def demo_rate_limit():
+    return {"message": "Chúc mừng! Bạn chưa bị chặn (Status 200)."}
+
+
+# --- SYSTEM HEALTH ---
 @app.get("/health", tags=["System"])
 def health_check():
     return JSONResponse(content={"status": "ok", "service": "user-service"}, status_code=200)
-

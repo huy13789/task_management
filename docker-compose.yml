@@ -40,8 +40,10 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - SECRET_KEY=${SECRET_KEY}
       - ALGORITHM=${ALGORITHM}
+      - REDIS_URL=${REDIS_URL}
       - FIRST_SUPERUSER=${FIRST_SUPERUSER}
       - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
+      - TZ=Asia/Ho_Chi_Minh
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,6 +60,14 @@ services:
       - "traefik.http.routers.user.middlewares=user-strip@docker"
       - "traefik.http.middlewares.user-strip.stripprefix.prefixes=/user"
       - "traefik.http.services.user.loadbalancer.server.port=8000"
+
+      # Config Rate Limiting Middleware
+      # 1. Middleware
+      - "traefik.http.middlewares.limit-ip.ratelimit.average=100"
+      - "traefik.http.middlewares.limit-ip.ratelimit.burst=50"
+
+      # 2. Router 
+      - "traefik.http.routers.user.middlewares=user-strip@docker,limit-ip@docker"
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').getcode() == 200"]
       interval: 30s
