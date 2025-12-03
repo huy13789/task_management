@@ -2,10 +2,10 @@
 
 from pwdlib import PasswordHash
 
-# 1. CẤU HÌNH
+# 1. Configuration
 password_hash = PasswordHash.recommended()
 
-# 2. CÁC HÀM TIỆN ÍCH (Chỉ Hash và Verify)
+# 2. Functions for hashing and verifying passwords
 def verify_password(plain_password, hashed_password):
     return password_hash.verify(plain_password, hashed_password)
 

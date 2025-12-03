@@ -8,12 +8,12 @@ services:
     image: traefik:v2.10
     container_name: api_gateway
     command:
-      - "--api.insecure=true" # Kích hoạt dashboard không bảo mật
-      - "--providers.docker=true" # Kích hoạt nhà cung cấp Docker
-      - "--providers.docker.exposedbydefault=false" # Chỉ lộ các dịch vụ được gắn nhãn
-      - "--entrypoints.web.address=:80" # Định nghĩa entrypoint web trên cổng 80
+      - "--api.insecure=true" # Activate the insecure API (Dashboard)
+      - "--providers.docker=true" # Activate Docker provider
+      - "--providers.docker.exposedbydefault=false" # Allow only explicitly enabled containers
+      - "--entrypoints.web.address=:80" # Define entrypoint for HTTP
     ports:
-      - "8080:80"      # API chính
+      - "8080:80"      # API Gateway
       - "8081:8080"    # Dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -33,7 +33,7 @@ services:
     ports:
       - "8010:8000"
     volumes:
-      - ./task_management/user-service:/app # Mã nguồn ứng dụng
+      - ./task_management/user-service:/app # Source code of the app
       - /app/.venv
     environment:
       - WATCHFILES_FORCE_POLLING=true
@@ -88,8 +88,8 @@ services:
     ports:
       - "8020:8000"
     volumes:
-      - ./task_management/task-service:/app # Mã nguồn ứng dụng
-      - /app/.venv      # Bức tường bảo vệ thư viện (Quan trọng)
+      - ./task_management/task-service:/app # Source code of the app
+      - /app/.venv    
     environment:
       - WATCHFILES_FORCE_POLLING=true
       - DATABASE_URL=${TASK_DATABASE_URL}
@@ -132,8 +132,8 @@ services:
     ports:
       - "8030:8000"
     volumes:
-      - ./task_management/notification-service:/app # Mã nguồn ứng dụng
-      - /app/.venv      # Bức tường bảo vệ thư viện (Quan trọng)
+      - ./task_management/notification-service:/app # Source code of the app
+      - /app/.venv     
     environment:
       - WATCHFILES_FORCE_POLLING=true
       - DATABASE_URL=${DATABASE_URL}
@@ -221,7 +221,6 @@ services:
       zookeeper:
         condition: service_healthy
     healthcheck:
-      # cub kafka-ready: Chờ ít nhất 1 broker sẵn sàng ở cổng 9092, timeout 20s
       test: ["CMD", "cub", "kafka-ready", "-b", "localhost:9092", "1", "20"]
       interval: 10s
       timeout: 10s

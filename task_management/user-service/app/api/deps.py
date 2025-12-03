@@ -5,17 +5,17 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
-# Import cấu hình và models
+# Import config and models
 from ..core.config import settings
 from ..db import get_db
 from ..models.user import User
 from ..auth.jwt import decode_access_token 
 
-# 1. Cấu hình
+# 1. Configuration
 security = HTTPBearer()
 SessionDep = Annotated[Session, Depends(get_db)]
 
-# 2. Dependency: Lấy User hiện tại
+# 2. Dependency: Get current user
 async def get_current_user(
     token_obj: Annotated[HTTPAuthorizationCredentials, Depends(security)], 
     db: SessionDep
@@ -27,10 +27,10 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    # Lấy chuỗi token
+    # Extract the token string
     token = token_obj.credentials 
     
-    # Dùng hàm decode đã tách ra file jwt.py
+    # Use the decode function imported from jwt.py
     payload = decode_access_token(token)
     
     if payload is None:
@@ -40,12 +40,13 @@ async def get_current_user(
     if email is None:
         raise credentials_exception
         
-    # Truy vấn DB
+    # Query the database
     user = db.query(User).filter(User.email == email).first()
     if user is None:
         raise credentials_exception
         
     return user
+
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 class RoleChecker:

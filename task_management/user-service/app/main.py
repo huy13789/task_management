@@ -67,13 +67,11 @@ app.include_router(users.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 
 
-# --- KHU VỰC API TEST RATE LIMIT (BẠN ĐANG THIẾU ĐOẠN NÀY) ---
-
 async def get_user_id_demo(request: Request):
-    # Lấy ID từ header, nếu không có thì lấy IP
+    # ID from header x-user-id hoặc IP nếu header không tồn tại
     return request.headers.get("x-user-id", "ip:" + request.client.host)
 
-# Giới hạn: 2 lần / 60 giây
+# Limiter: 2 requests / 1 min user/IP
 @app.get("/test-rate-limit", dependencies=[Depends(RateLimiter(times=2, seconds=60, identifier=get_user_id_demo))])
 async def demo_rate_limit():
     return {"message": "Chúc mừng! Bạn chưa bị chặn (Status 200)."}

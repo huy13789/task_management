@@ -1,7 +1,6 @@
 import requests
 import time
 
-# URL phải là /test-rate-limit (đã định nghĩa ở main.py)
 URL = "http://localhost:8080/user/test-rate-limit"
 
 def call_api(i):

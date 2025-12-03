@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from ..core.config import settings
 from ..auth.security import get_password_hash
 from ..models.user import User
-from ..schemas.user import UserCreate # Hoặc dùng model trực tiếp
+from ..schemas.user import UserCreate # Imported but not used
 
 def init_db(db: Session) -> None:
     user = db.query(User).filter(User.email == settings.FIRST_SUPERUSER).first()
