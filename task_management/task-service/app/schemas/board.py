@@ -2,17 +2,7 @@ from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel
 from ..models.task import BoardVisibility
-
-class ColumnResponse(BaseModel):
-    id: int
-    title: str
-    position: int
-    is_archived: bool
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
+from .column import ColumnResponse
 
 class BoardBase(BaseModel):
     title: str

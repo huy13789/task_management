@@ -3,8 +3,10 @@ from typing import List
 from fastapi import HTTPException
 from loguru import logger
 from sqlalchemy.orm import Session, joinedload
+from starlette import status
+
 from ..schemas.board import BoardCreate
-from ..models.task import Board, BoardMember, BoardVisibility
+from ..models.task import Board, BoardMember, BoardVisibility, Column
 
 
 class BoardService:
@@ -40,25 +42,32 @@ class BoardService:
             raise HTTPException(status_code=500, detail="Failed to create board")
 
     def get_my_boards(self, user_id: int, skip: int = 0, limit: int = 100) -> List[Board]:
-        return (
-            self.db.query(Board)
-            .join(BoardMember, Board.id == BoardMember.board_id)
-            .filter(
-                BoardMember.user_id == user_id,
-                Board.is_closed == False
+        try:
+            return (
+                self.db.query(Board)
+                .join(BoardMember, Board.id == BoardMember.board_id)
+                .filter(
+                    BoardMember.user_id == user_id,
+                    Board.is_closed == False
+                )
+                .order_by(Board.created_at.desc())
+                .offset(skip)
+                .limit(limit)
+                .all()
             )
-            .order_by(Board.created_at.desc())
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
+        except Exception as e:
+            logger.error(f"Error fetching boards for user {user_id}: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to retrieve boards"
+            )
 
     def get_board_detail(self, board_id: int, user_id: int) -> Board:
         
         board = (
             self.db.query(Board)
             .options(
-                joinedload(Board.lists).joinedload(List.cards)
+                joinedload(Board.columns).joinedload(Column.cards)
             )
             .filter(Board.id == board_id)
             .first()
@@ -77,6 +86,10 @@ class BoardService:
 
         if not is_member:
             raise HTTPException(status_code=403, detail="You do not have permission to access this board")
+
+        active_columns = [col for col in board.columns if not col.is_archived]
+        active_columns.sort(key=lambda x: x.position)
+        board.columns = active_columns
 
         return board
 
