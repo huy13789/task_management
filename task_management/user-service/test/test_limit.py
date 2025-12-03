@@ -14,7 +14,6 @@ def call_api(i):
         elif response.status_code == 429:
             print(f"⛔ Lần {i}: BỊ CHẶN (429 Too Many Requests)")
         else:
-            # Nếu vẫn ra 404 thì in nội dung xem lỗi gì
             print(f"⚠️ Lần {i}: Lỗi {response.status_code} - {response.text}")
             
     except Exception as e:
