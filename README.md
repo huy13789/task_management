@@ -1,14 +1,53 @@
-# 🚀 Task Management Microservice System
+# 📋 Task Management Microservices
 
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 ![Traefik](https://img.shields.io/badge/Traefik-24a1c1?style=flat&logo=traefik&logoColor=white)
+![Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?style=flat&logo=apachekafka&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat&logo=kubernetes&logoColor=white)
+![GitLab CI](https://img.shields.io/badge/GitLab%20CI-FC6D26?style=flat&logo=gitlab&logoColor=white)
 ![uv](https://img.shields.io/badge/uv-package_manager-purple)
-![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white)
 
-**Hệ thống quản lý tác vụ (Task Management)** được xây dựng theo kiến trúc **Microservices**, sử dụng **FastAPI**, **Docker** và **Traefik Gateway**. Dự án được tối ưu hóa cho hiệu suất cao với trình quản lý gói `uv`.
+## 📖 Giới thiệu
 
----
+**Hệ thống quản lý tác vụ (Task Management)** là một giải pháp toàn diện được xây dựng theo kiến trúc **Microservices**, tối ưu hóa cho hiệu suất cao và khả năng mở rộng (scalability). Dự án áp dụng các công nghệ Cloud-native hiện đại nhất để đảm bảo tính tin cậy và tốc độ xử lý.
+
+## 🏗️ Kiến trúc & Công nghệ (Tech Stack)
+
+Hệ thống được thiết kế chia nhỏ thành các dịch vụ độc lập, giao tiếp thông qua REST API và Message Queue.
+
+| Thành phần | Công nghệ | Mô tả chi tiết |
+| :--- | :--- | :--- |
+| **Backend Services** | **Python FastAPI** | Sử dụng framework hiện đại, hỗ trợ **Async I/O** để đạt hiệu suất cao nhất (High performance). Quản lý gói bằng `uv` cho tốc độ cài đặt cực nhanh. |
+| **API Gateway** | **Traefik** | Đóng vai trò cửa ngõ duy nhất (Entry point), hỗ trợ **Auto-discovery** dịch vụ, Load balancing và Routing thông minh (Cloud-native). |
+| **Message Broker** | **Kafka + Zookeeper** | Xử lý giao tiếp bất đồng bộ (Asynchronous) giữa các services, giúp **Decoupling** hệ thống và đảm bảo tính toàn vẹn dữ liệu. |
+| **Database** | **PostgreSQL** | Áp dụng pattern **Database per Service** (Mỗi service sở hữu một DB riêng) để đảm bảo tính độc lập. |
+| **Caching** | **Redis** | Sử dụng cho Caching dữ liệu truy cập thường xuyên và **Rate Limiting** để bảo vệ API. |
+| **Orchestration** | **Kubernetes (K8s)** | Quản lý Container, tự động Scaling (HPA), và đảm bảo High Availability cho các Pods. |
+| **CI/CD** | **GitLab CI** | Pipeline tự động hóa quy trình: Linting -> Testing -> Build Docker Image -> Deploy to K8s. |
+
+## 🧩 Mô hình hệ thống (Architecture Overview)
+
+```
+Client[Client (Web/Mobile)] -->|HTTPS| Traefik[Traefik Gateway]
+    
+    subgraph K8s_Cluster [Kubernetes Cluster]
+        Traefik -->|Route /auth| AuthService[Auth Service]
+        Traefik -->|Route /tasks| TaskService[Task Service]
+        Traefik -->|Route /notif| NotifService[Notification Service]
+        
+        AuthService -->|Read/Write| DB_Auth[(Postgres Auth)]
+        TaskService -->|Read/Write| DB_Task[(Postgres Task)]
+        
+        TaskService -.->|Publish Event| Kafka{Apache Kafka}
+        Kafka -.->|Consume Event| NotifService
+        
+        TaskService -->|Cache| Redis[(Redis)]
+    
+```
 
 ## 🛠 Hướng Dẫn Cài Đặt (Installation)
 
@@ -47,6 +86,18 @@
   ```
 
 ## 🧰 Project Structure
+
+```
+task_management/
+├── auth-service/        # Service xác thực (User, JWT)
+├── task-service/        # Service quản lý công việc (CRUD Task)
+├── notification-service/# Service gửi thông báo (Kafka Consumer)
+├── k8s/                 # Các file manifest Kubernetes (Deployment, Service, Ingress)
+├── docker-compose.yml   # File chạy local
+└── README.md
+
+```
+
 ```
 app/
 ├── api/                        # 🛡️ TẦNG GIAO TIẾP & PHỤ THUỘC (Dependencies)
@@ -122,3 +173,9 @@ Hệ thống sử dụng **Traefik** làm Gateway chính điều hướng reques
 | Dừng        | `docker-compose down -v`                   | Tắt và xóa containers                |
 | Xem Log     | `docker-compose logs -f`                | Theo dõi log thời gian thực          |
 | Vào Shell   | `docker-compose exec account-service bash` | SSH vào trong container           |
+
+## 🤝 Đóng góp
+Mọi đóng góp (Pull Request) đều được hoan nghênh.
+
+## 📄 License
+[MIT](LICENSE)
