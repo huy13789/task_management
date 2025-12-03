@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Task Service",
-    description="Microservice quản lý công việc (Kanban Board)",
+    description="Service quản lý công việc (Kanban Board)",
     version="1.0.0",
     root_path="/task",
     lifespan=lifespan
@@ -27,7 +27,7 @@ app = FastAPI(
 # --- MIDDLEWARE ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Hoặc danh sách domain cụ thể
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

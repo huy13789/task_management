@@ -1,9 +1,10 @@
 from typing import List
-from fastapi import APIRouter, status, Query, Depends
+from fastapi import APIRouter, status, Query
 
 from ..schemas.board import BoardResponse, BoardCreate, BoardDetailResponse
 from ..services.board_service import BoardService
 from ..api.deps import SessionDep, CurrentUser
+
 
 router = APIRouter(prefix="/boards", tags=["Boards"])
 
@@ -36,7 +37,7 @@ def get_board_details(
 
 
 # 4. XÓA / ĐÓNG BẢNG (DELETE)
-@router.delete("/{board_id}")
+@router.delete("/{board_id}", response_model=dict)
 def delete_board(
     board_id: int,
     db: SessionDep,

@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
         db.close()
     yield 
 
-app = FastAPI(title="User Service", root_path="/user", lifespan=lifespan)
+app = FastAPI(title="User Service",description="Service quản lý User", root_path="/user", lifespan=lifespan)
 
 # CORS
 origins = [
