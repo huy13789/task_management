@@ -32,19 +32,23 @@ Hệ thống được thiết kế chia nhỏ thành các dịch vụ độc l�
 ## 🧩 Mô hình hệ thống (Architecture Overview)
 
 ```
-Client[Client (Web/Mobile)] -->|HTTPS| Traefik[Traefik Gateway]
+    Client[Client (Web/Mobile)] -->|HTTPS| Traefik[Traefik Gateway]
     
     subgraph K8s_Cluster [Kubernetes Cluster]
-        Traefik -->|Route /auth| AuthService[Auth Service]
-        Traefik -->|Route /tasks| TaskService[Task Service]
-        Traefik -->|Route /notif| NotifService[Notification Service]
+        %% Routing từ Gateway vào các Service cụ thể
+        Traefik -->|Route /auth, /users| UserService[user-service]
+        Traefik -->|Route /tasks| TaskService[task-service]
+        Traefik -->|Route /notif| NotifService[notification-service]
         
-        AuthService -->|Read/Write| DB_Auth[(Postgres Auth)]
-        TaskService -->|Read/Write| DB_Task[(Postgres Task)]
+        %% Kết nối Database
+        UserService -->|Read/Write| DB_User[(Postgres User DB)]
+        TaskService -->|Read/Write| DB_Task[(Postgres Task DB)]
         
+        %% Giao tiếp bất đồng bộ qua Kafka
         TaskService -.->|Publish Event| Kafka{Apache Kafka}
         Kafka -.->|Consume Event| NotifService
         
+        %% Caching
         TaskService -->|Cache| Redis[(Redis)]
     
 ```
