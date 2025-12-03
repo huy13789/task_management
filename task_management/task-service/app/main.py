@@ -14,7 +14,6 @@ from .models import task as task_model
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     yield
-    print("🛑 Task Service Stopping...")
 
 app = FastAPI(
     title="Task Service",

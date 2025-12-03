@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from loguru import logger
 from sqlalchemy.orm import Session, joinedload
 from ..schemas.board import BoardCreate
-from ..models.task import Board, BoardMember, BoardVisibility, List as TaskList, Card
+from ..models.task import Board, BoardMember, BoardVisibility
 
 
 class BoardService:
@@ -55,16 +55,14 @@ class BoardService:
 
     def get_board_detail(self, board_id: int, user_id: int) -> Board:
         
-        board = self.db.query(Board).filter(Board.id == board_id).first()
-
-        # board = (
-        #     self.db.query(Board)
-        #     .options(
-        #         joinedload(Board.lists).joinedload(List.cards)
-        #     )
-        #     .filter(Board.id == board_id)
-        #     .first()
-        # )
+        board = (
+            self.db.query(Board)
+            .options(
+                joinedload(Board.lists).joinedload(List.cards)
+            )
+            .filter(Board.id == board_id)
+            .first()
+        )
 
         if not board:
             raise HTTPException(status_code=404, detail="Board not found")

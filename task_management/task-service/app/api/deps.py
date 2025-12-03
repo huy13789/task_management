@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel 
 
 from ..db import get_db
-from ..core.jwt import decode_access_token 
+from ..auth.jwt import decode_access_token 
 
 security = HTTPBearer()
 SessionDep = Annotated[Session, Depends(get_db)]

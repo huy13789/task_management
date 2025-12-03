@@ -33,7 +33,7 @@ def get_board_details(
     db: SessionDep, 
     current_user: CurrentUser
 ):
-    return BoardService(db).get_board_detail(board_id, user_id=current_user.id)
+    return BoardService(db).get_board_detail(board_id, user_id=current_user.id) 
 
 
 # 4. XÓA / ĐÓNG BẢNG (DELETE)
