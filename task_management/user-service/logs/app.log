@@ -194,3 +194,6 @@
 2025-12-04 02:19:50.437 | SUCCESS  | app.core.redis:init_redis:18 - ✅ Redis Connected: redis://redis:6379/0
 2025-12-04 02:20:15.533 | WARNING  | app.main:lifespan:43 - 🛑 Shutting down application...
 2025-12-04 02:20:15.534 | INFO     | app.core.redis:close_redis:29 - 🔒 Redis Connection Closed
+2025-12-04 02:20:18.800 | INFO     | app.main:lifespan:26 - 🚀 Starting application...
+2025-12-04 02:20:18.827 | SUCCESS  | app.main:lifespan:33 - ✅ Database Initialized
+2025-12-04 02:20:18.840 | SUCCESS  | app.core.redis:init_redis:18 - ✅ Redis Connected: redis://redis:6379/0
