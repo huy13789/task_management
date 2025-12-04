@@ -6,7 +6,7 @@ from starlette.responses import JSONResponse
 # Import Database Engine
 from .db import engine
 from .models import Base
-from .routers import board, column
+from .routers import board, column, card
 
 from .models import task as task_model
 
@@ -34,6 +34,7 @@ app.add_middleware(
 
 app.include_router(board.router, prefix="/api/v1")
 app.include_router(column.router, prefix="/api/v1")
+app.include_router(card.router, prefix="/api/v1")
 
 
 # --- SYSTEM API ---
