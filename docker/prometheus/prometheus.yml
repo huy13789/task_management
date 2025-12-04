@@ -1,9 +1,10 @@
 global:
-  scrape_interval: 5s
+  scrape_interval: 3s
 
 scrape_configs:
   - job_name: 'fastapi_microservices'
-    metrics_path: '/metrics'  # Python dùng đường dẫn này (Java dùng /actuator/prometheus)
+    metrics_path: '/metrics' # This is the default, but being explicit
+    scrape_interval: 3s
     static_configs:
       - targets: ['user-service:8000', 'task-service:8000', 'notification-service:8000'] 
         # Tên service phải khớp với docker-compose.yml của bạn

@@ -52,8 +52,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Prometheus Monitoring
-Instrumentator().instrument(app).expose(app)
 
 # CORS
 origins = ["http://localhost:3000", "*"]
@@ -70,6 +68,17 @@ app.include_router(login.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 
+
+Instrumentator(
+    excluded_handlers=[
+        "/health",
+        "/metrics",
+        "/docs",
+        "/redoc",
+        "/openapi.json"
+    ]
+).instrument(app).expose(app)
+# --- RATE LIMITER DEMO ---
 
 async def get_user_id_demo(request: Request):
     # ID from header x-user-id hoặc IP nếu header không tồn tại
