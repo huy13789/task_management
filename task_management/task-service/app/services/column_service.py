@@ -1,10 +1,12 @@
 from fastapi import HTTPException
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from starlette import status
 
 from ..schemas.column import ColumnCreate, ColumnUpdate
 from ..models.task import Column, BoardMember
+
+POSITION_GAP = 65536.0
 
 class ColumnService:
     def __init__(self, db: Session):
@@ -30,11 +32,11 @@ class ColumnService:
     def create_column(self, column_data: ColumnCreate, user_id: int) -> Column:
         self._check_board_member(column_data.board_id, user_id=user_id)
 
-        max_pos = self.db.query(func.max(Column.position)).filter(
+        last_column = self.db.query(Column).filter(
             Column.board_id == column_data.board_id
-        ).scalar()
+        ).order_by(Column.position.desc()).first()
 
-        new_position = (max_pos + 1) if max_pos is not None else 0
+        new_position = (last_column.position + POSITION_GAP) if last_column else POSITION_GAP
 
         new_column = Column(
             title=column_data.title,
@@ -46,13 +48,19 @@ class ColumnService:
             self.db.add(new_column)
             self.db.commit()
             self.db.refresh(new_column)
+
+            new_column.cards = []
             return new_column
         except Exception as e:
             self.db.rollback()
             raise HTTPException(status_code=500, detail=f"Failed to create column: {str(e)}")
 
     def update_column(self, column_id: int, update_data: ColumnUpdate, user_id: int) -> Column:
-        column = self.db.query(Column).filter(Column.id == column_id).first()
+        column = (
+            self.db.query(Column)
+            .options(joinedload(Column.cards))
+            .filter(Column.id == column_id).first()
+        )
         if not column:
             raise HTTPException(status_code=404, detail="Column not found")
 
@@ -61,26 +69,35 @@ class ColumnService:
         if update_data.title is not None:
             column.title = update_data.title
 
-        if update_data.position is not None and update_data.position != column.position:
-            old_pos = column.position
-            new_pos = update_data.position
+        if update_data.new_index is not None:
+            target_index = update_data.new_index
             board_id = column.board_id
 
-            if new_pos > old_pos:
-                self.db.query(Column).filter(
-                    Column.board_id == board_id,
-                    Column.position > old_pos,
-                    Column.position <= new_pos
-                ).update({ Column.position: Column.position - 1}, synchronize_session=False)
+            column_in_boards = (
+                self.db.query(Column)
+                .filter(Column.board_id == board_id, Column.id != column_id)
+                .order_by(Column.position.asc())
+                .all()
+            )
+
+            new_position = 0.0
+
+            if not column_in_boards:
+                new_position = POSITION_GAP
+
+            elif target_index == 0:
+                new_position = column_in_boards[0].position / 2.0
+
+            elif target_index >= len(column_in_boards):
+                new_position = column_in_boards[-1].position + POSITION_GAP
 
             else:
-                self.db.query(Column).filter(
-                    Column.board_id == board_id,
-                    Column.position >= new_pos,
-                    Column.position < old_pos
-                ).update({ Column.position: Column.position + 1}, synchronize_session=False)
+                prev_pos = column_in_boards[target_index - 1].position
+                next_pos = column_in_boards[target_index].position
+                new_position = (prev_pos + next_pos) / 2.0
 
-            column.position = new_pos
+            column.position = new_position
+
         try:
             self.db.commit()
             self.db.refresh(column)

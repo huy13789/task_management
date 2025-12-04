@@ -197,3 +197,14 @@
 2025-12-04 02:20:18.800 | INFO     | app.main:lifespan:26 - 🚀 Starting application...
 2025-12-04 02:20:18.827 | SUCCESS  | app.main:lifespan:33 - ✅ Database Initialized
 2025-12-04 02:20:18.840 | SUCCESS  | app.core.redis:init_redis:18 - ✅ Redis Connected: redis://redis:6379/0
+2025-12-04 14:28:43.127 | INFO     | app.main:lifespan:26 - 🚀 Starting application...
+2025-12-04 14:28:43.633 | SUCCESS  | app.main:lifespan:33 - ✅ Database Initialized
+2025-12-04 14:28:43.634 | ERROR    | app.core.redis:init_redis:22 - ❌ Redis Init Failed: Redis URL must specify one of the following schemes (redis://, rediss://, unix://)
+2025-12-04 15:14:58.390 | INFO     | app.main:lifespan:26 - 🚀 Starting application...
+2025-12-04 15:14:58.944 | SUCCESS  | app.main:lifespan:33 - ✅ Database Initialized
+2025-12-04 15:14:58.983 | SUCCESS  | app.core.redis:init_redis:18 - ✅ Redis Connected: redis://redis:6379/0
+2025-12-04 15:16:26.637 | INFO     | app.services.user_service:create_user:32 - Created user: user@example.com
+2025-12-04 16:27:04.832 | INFO     | app.main:lifespan:26 - 🚀 Starting application...
+2025-12-04 16:27:05.266 | SUCCESS  | app.main:lifespan:33 - ✅ Database Initialized
+2025-12-04 16:27:05.298 | SUCCESS  | app.core.redis:init_redis:18 - ✅ Redis Connected: redis://redis:6379/0
+2025-12-04 16:27:59.664 | INFO     | app.services.user_service:create_user:32 - Created user: user@example.com
