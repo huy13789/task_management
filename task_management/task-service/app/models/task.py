@@ -1,7 +1,8 @@
 
 import enum
 
-from sqlalchemy import Column as SqlColumn, Integer, DateTime, func, Table, ForeignKey, String, Boolean, Enum as DbEnum
+from sqlalchemy import Column as SqlColumn, Integer, DateTime, func, Table, ForeignKey, String, Boolean, Enum as DbEnum, \
+    Float
 from sqlalchemy.orm import relationship
 
 from . import Base
@@ -86,7 +87,7 @@ class Column(Base):
 
     id = SqlColumn(Integer, primary_key=True, index=True)
     title = SqlColumn(String, nullable=False)
-    position = SqlColumn(Integer, nullable=False, default=0)
+    position = SqlColumn(Float, nullable=False, default=0.0)
 
     is_archived = SqlColumn(Boolean, default=False)
 
@@ -105,7 +106,7 @@ class Card(Base):
     id = SqlColumn(Integer, primary_key=True, index=True)
     title = SqlColumn(String, nullable=False)
     description = SqlColumn(String, nullable=True)
-    position = SqlColumn(Integer, nullable=False, default=0)
+    position = SqlColumn(Float, nullable=False, default=0.0)
 
     is_archived = SqlColumn(Boolean, default=False)
 

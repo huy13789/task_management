@@ -76,21 +76,20 @@ class BoardService:
         if not board:
             raise HTTPException(status_code=404, detail="Board not found")
 
-        if board.visibility == BoardVisibility.PUBLIC:
-            return board
+        valid_columns = []
+        for col in board.columns:
+            if not col.is_archived:
+                active_cards = [
+                    card for card in col.cards
+                    if not card.is_archived
+                ]
 
-        is_member = self.db.query(BoardMember).filter(
-            BoardMember.board_id == board_id,
-            BoardMember.user_id == user_id
-        ).first()
+                active_cards.sort(key=lambda x: x.position)
+                col.cards = active_cards
+                valid_columns.append(col)
 
-        if not is_member:
-            raise HTTPException(status_code=403, detail="You do not have permission to access this board")
-
-        active_columns = [col for col in board.columns if not col.is_archived]
-        active_columns.sort(key=lambda x: x.position)
-        board.columns = active_columns
-
+        valid_columns.sort(key=lambda x: x.position)
+        board.columns = valid_columns
         return board
 
     def delete_board(self, board_id: int, user_id: int, permanent: bool = False):
