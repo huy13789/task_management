@@ -1,10 +1,12 @@
+from typing import List
+
 from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 from starlette import status
 
 from ..schemas.column import ColumnCreate, ColumnUpdate
-from ..models.task import Column, BoardMember
+from ..models.task import Column, BoardMember, Board
 
 POSITION_GAP = 65536.0
 
@@ -173,3 +175,18 @@ class ColumnService:
         except Exception as e:
             self.db.rollback()
             raise HTTPException(status_code=500, detail=f"Failed to restore column: {str(e)}")
+
+    def get_columns_by_board_id(self, board_id: int, user_id) -> List[Column]:
+        self._check_board_member(board_id, user_id)
+
+        columns = (
+            self.db.query(Column)
+            .filter(
+                Column.board_id == board_id,
+                Column.is_archived == False
+            )
+            .order_by(Column.position.asc())
+            .all()
+        )
+
+        return columns

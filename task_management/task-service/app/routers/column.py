@@ -40,3 +40,11 @@ def unarchived_column(
     current_user: CurrentUser
 ):
     return ColumnService(db).unarchived_column(column_id, user_id=current_user.id)
+
+@router.get("/")
+def get_columns(
+    board_id: int,
+    db: SessionDep,
+    current_user: CurrentUser
+):
+    return ColumnService(db).get_columns_by_board_id(board_id, current_user.id)

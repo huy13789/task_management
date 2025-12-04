@@ -3,7 +3,7 @@
 import jwt
 from ..core.config import settings
 
-# Hàm này giúp deps.py không cần import thư viện jwt trực tiếp
+# This function allows deps.py to avoid importing the jwt library directly
 def decode_access_token(token: str):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])

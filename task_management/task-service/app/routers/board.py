@@ -36,7 +36,7 @@ def get_board_details(
     return BoardService(db).get_board_detail(board_id, user_id=current_user.id) 
 
 
-# 4. XÓA / ĐÓNG BẢNG (DELETE)
+# CLOSE - DELETE BOARD
 @router.delete("/{board_id}", response_model=dict)
 def delete_board(
     board_id: int,

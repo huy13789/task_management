@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
@@ -176,3 +178,18 @@ class CardService:
         except Exception as e:
             self.db.rollback()
             raise HTTPException(status_code=500, detail=f"Failed to restore card: {str(e)}")
+
+    def get_cards_by_column_id(self, column_id: int, user_id: int) -> List[Column]:
+        self._check_column_board_member(column_id, user_id)
+
+        cards = (
+            self.db.query(Card)
+            .filter(
+                Card.column_id == column_id,
+                Card.is_archived == False
+            )
+            .order_by(Card.position.asc())
+            .all()
+        )
+
+        return cards

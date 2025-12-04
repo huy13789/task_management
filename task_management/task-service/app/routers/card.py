@@ -41,3 +41,11 @@ def unarchived_column(
         current_user: CurrentUser
 ):
     return CardService(db).unarchived_card(card_id, user_id=current_user.id)
+
+@router.get("/")
+def get_cards(
+    column_id: int,
+    db: SessionDep,
+    current_user: CurrentUser
+):
+    return  CardService(db).get_cards_by_column_id(column_id, current_user.id)

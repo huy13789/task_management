@@ -208,3 +208,12 @@
 2025-12-04 16:27:05.266 | SUCCESS  | app.main:lifespan:33 - ✅ Database Initialized
 2025-12-04 16:27:05.298 | SUCCESS  | app.core.redis:init_redis:18 - ✅ Redis Connected: redis://redis:6379/0
 2025-12-04 16:27:59.664 | INFO     | app.services.user_service:create_user:32 - Created user: user@example.com
+2025-12-04 17:01:07.028 | INFO     | app.main:lifespan:26 - 🚀 Starting application...
+2025-12-04 17:01:07.325 | SUCCESS  | app.main:lifespan:33 - ✅ Database Initialized
+2025-12-04 17:01:07.366 | SUCCESS  | app.core.redis:init_redis:18 - ✅ Redis Connected: redis://redis:6379/0
+2025-12-04 17:03:48.882 | INFO     | app.services.user_service:create_user:32 - Created user: user@example.com
+2025-12-04 17:52:42.025 | WARNING  | app.main:lifespan:43 - 🛑 Shutting down application...
+2025-12-04 17:52:42.026 | INFO     | app.core.redis:close_redis:29 - 🔒 Redis Connection Closed
+2025-12-04 22:53:37.866 | INFO     | app.main:lifespan:26 - 🚀 Starting application...
+2025-12-04 22:53:38.110 | SUCCESS  | app.main:lifespan:33 - ✅ Database Initialized
+2025-12-04 22:53:38.166 | SUCCESS  | app.core.redis:init_redis:18 - ✅ Redis Connected: redis://redis:6379/0

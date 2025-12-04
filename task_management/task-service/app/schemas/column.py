@@ -25,7 +25,7 @@ class ColumnCreate(BaseModel):
     title: str
     board_id: int
 
-# Input - schema update title và thay đổi vị trí column
+# Input - Update the column’s title and change its position in the schema
 class ColumnUpdate(BaseModel):
     title: Optional[str] = None
     new_index: Optional[int] = None
