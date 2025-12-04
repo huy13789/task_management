@@ -8,6 +8,6 @@ from ..services.auth_service import AuthService
 
 router = APIRouter(tags=["Authentication"])
 
-@router.post("/auth/login", response_model=TokenResponse, dependencies=[Depends(RateLimiter(times=5, seconds=60))])
+@router.post("/auth/login", response_model=TokenResponse, dependencies=[Depends(RateLimiter(times=20, seconds=60))])
 def login_for_access_token(login_data: UserLogin, db: SessionDep):
     return AuthService(db).login_user(login_data)
