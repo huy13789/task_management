@@ -4,8 +4,33 @@ from starlette import status
 from ..schemas.column import ColumnResponse, ColumnCreate
 from ..api.deps import SessionDep, CurrentUser
 from ..services.column_service import ColumnService, ColumnUpdate
+from typing import List
 
 router = APIRouter(prefix="/columns", tags=["Columns"])
+
+@router.get("/", response_model=List[ColumnResponse], status_code=status.HTTP_200_OK)
+def get_columns(
+    board_id: int,
+    db: SessionDep,
+    current_user: CurrentUser,
+    include_archived: bool = Query(False, description="Include archived columns in the result")
+):
+    """
+    Retrieve all columns for a specific board.
+    
+    Fetch list of columns belonging to the `board_id`.
+    
+    **Sorting:**
+    - Ordered by `position` (ascending).
+    
+    **Access Control:**
+    - User must be a member of the Board.
+    """
+    return ColumnService(db).get_columns_by_board(
+        user_id=current_user.id, 
+        board_id=board_id, 
+        include_archived=include_archived
+    )
 
 @router.post("/", response_model=ColumnResponse, status_code=status.HTTP_201_CREATED)
 def create_column(

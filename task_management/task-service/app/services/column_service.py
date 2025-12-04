@@ -4,13 +4,29 @@ from sqlalchemy.orm import Session, joinedload
 from starlette import status
 
 from ..schemas.column import ColumnCreate, ColumnUpdate
-from ..models.task import Column, BoardMember
+from ..models.task import Column, BoardMember, Board
 
 POSITION_GAP = 65536.0
 
 class ColumnService:
     def __init__(self, db: Session):
         self.db = db
+
+    def get_columns_by_board(self, user_id: int, board_id: int, include_archived: bool = False) -> list[Column]:
+        query = (
+            self.db.query(Column)
+            .join(Board, Column.board_id == Board.id)
+            .join(BoardMember, Board.id == BoardMember.board_id)
+            .filter(
+                BoardMember.user_id == user_id,
+                Column.board_id == board_id
+            )
+        )
+        # Filter out archived columns if not requested
+        if not include_archived:
+            query = query.filter(Column.is_archived == False)
+
+        return query.order_by(Column.position.asc()).all()
 
     def _check_board_member(self, board_id: int, user_id: int) -> None:
         board_member = (

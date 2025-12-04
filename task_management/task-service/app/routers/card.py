@@ -8,6 +8,14 @@ from ..services.card_service import CardService
 
 router = APIRouter(prefix="/cards", tags=["Cards"])
 
+@router.get("/", response_model=list[CardResponse], status_code=status.HTTP_200_OK, description="Get all cards in a column")
+def get_cards_by_column(
+    column_id: int,
+    db: SessionDep,
+    current_user: CurrentUser
+):
+    return CardService(db).get_cards_in_column(user_id=current_user.id, column_id=column_id)
+
 @router.post("/", response_model=CardResponse, status_code=status.HTTP_200_OK)
 def create_card(
     card_data: CardCreate,

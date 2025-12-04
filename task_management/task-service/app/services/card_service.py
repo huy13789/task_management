@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from starlette import status
 
 from ..schemas.card import CardCreate, CardUpdate
@@ -10,6 +10,30 @@ POSITION_GAP = 65536.0
 class CardService:
     def __init__(self, db: Session):
         self.db = db
+        
+    def get_cards_in_column(self, user_id: int, column_id: int) -> list[Card]:
+        cards = (
+            self.db.query(Card)
+            
+            .join(Column, Card.column_id == Column.id)
+            .join(Board, Column.board_id == Board.id)
+            .join(BoardMember, Board.id == BoardMember.board_id)
+                
+            .options(
+                joinedload(Card.labels),
+                joinedload(Card.assignments)
+            )
+
+            .filter(
+                Card.column_id == column_id,     
+                BoardMember.user_id == user_id,   
+                Card.is_archived == False         
+            )
+                
+                .order_by(Card.position.asc())
+                .all()
+            )
+        return cards
 
     def _check_column_board_member(self, column_id: int, user_id: int):
         has_permission = (

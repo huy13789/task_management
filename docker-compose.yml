@@ -12,6 +12,8 @@ services:
       - "--providers.docker=true" # Activate Docker provider
       - "--providers.docker.exposedbydefault=false" # Allow only explicitly enabled containers
       - "--entrypoints.web.address=:80" # Define entrypoint for HTTP
+      - "--metrics.prometheus=true"  # Bật Prometheus metrics
+      - "--entrypoints.metrics.address=:8082" # Mở cổng metrics riêng (nếu muốn)
     ports:
       - "8080:80"      # API Gateway
       - "8081:8080"    # Dashboard
@@ -244,6 +246,41 @@ services:
       retries: 30
     networks:
       - app_network
+  # -------------------------------------------------------
+  # 9. PROMETHEUS (Thu thập số liệu)
+  # -------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: prometheus
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - app_network
+
+  # -------------------------------------------------------
+  # 10. GRAFANA (Vẽ biểu đồ)
+  # -------------------------------------------------------
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+      
+      # 2. Nạp file JSON biểu đồ vào đúng chỗ dashboard.yml trỏ tới
+      - ./docker/grafana/dashboards_json:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin 
+    networks:
+      - app_network
+    depends_on:
+      - prometheus
 
 networks:
   app_network:
@@ -251,3 +288,5 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  prometheus_data:
+  grafana_data:

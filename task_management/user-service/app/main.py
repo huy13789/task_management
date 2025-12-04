@@ -18,6 +18,7 @@ from app.core.logging import setup_logging
 
 # --- QUAN TRỌNG: Import thư viện Rate Limit ---
 from fastapi_limiter.depends import RateLimiter
+from prometheus_fastapi_instrumentator import Instrumentator
 
 logger = setup_logging()
 
@@ -50,6 +51,9 @@ app = FastAPI(
     root_path="/user", 
     lifespan=lifespan
 )
+
+# Prometheus Monitoring
+Instrumentator().instrument(app).expose(app)
 
 # CORS
 origins = ["http://localhost:3000", "*"]
