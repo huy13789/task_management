@@ -27,3 +27,18 @@ class BoardResponse(BoardBase):
 
 class BoardDetailResponse(BoardResponse):
     columns: List[ColumnResponse] = []
+
+
+# Input
+class BoardMemberCreate(BaseModel):
+    user_id: int
+    role: str = "member"
+
+# Output
+class BoardMemberResponse(BaseModel):
+    user_id: int
+    role: str
+    joined_at: datetime
+
+    class Config:
+        from_attributes = True

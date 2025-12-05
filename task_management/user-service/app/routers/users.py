@@ -1,4 +1,5 @@
 # user-service/app/routers/users.py
+from typing import List
 
 from fastapi import APIRouter, status
 from ..schemas.user import UserCreate, UserResponse, UserUpdate
@@ -28,3 +29,13 @@ def update_account_me(
 def delete_account_me(current_user: CurrentUser, db: SessionDep):
     UserService(db).delete_user(current_user.id)
     return {"message": "User deleted"}
+
+@router.get("/search", response_model=List[UserResponse])
+def search_user_public(
+    keyword: str,
+    db: SessionDep,
+    current_user: CurrentUser,
+    skip: int = 0,
+    limit: int = 100
+):
+    return UserService(db).search_users(keyword, skip, limit)

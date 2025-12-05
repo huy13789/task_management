@@ -1,5 +1,5 @@
 # user-service/app/services/user_service.py
-
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from loguru import logger # Import logger
@@ -70,3 +70,15 @@ class UserService:
             self.db.rollback()
             logger.error(f"Error deleting user {user_id}: {e}")
             raise HTTPException(status_code=500, detail="Internal Server Error")
+
+    def search_users(self, keyword: str, skip: int = 0, limit: int = 0):
+        search_pattern = f"%{keyword}%"
+
+        return self.db.query(User).filter(
+            or_(
+                User.email.ilike(search_pattern),
+                User.first_name.ilike(search_pattern),
+                User.last_name.ilike(search_pattern)
+            ),
+            User.is_active == True
+        ).offset(skip).limit(limit).all()
