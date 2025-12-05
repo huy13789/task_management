@@ -16,9 +16,11 @@ from .models import Base
 from app.core.redis import init_redis, close_redis
 from app.core.logging import setup_logging
 
-# --- QUAN TRỌNG: Import thư viện Rate Limit ---
+# Import thư viện Rate Limit & Metrics & Tracing
 from fastapi_limiter.depends import RateLimiter
 from prometheus_fastapi_instrumentator import Instrumentator
+from app.core.tracing import setup_tracing
+from app.core.kafka import init_kafka, close_kafka
 
 logger = setup_logging()
 
@@ -36,15 +38,19 @@ async def lifespan(app: FastAPI):
         logger.error(f"❌ Database Init Failed: {e}")
     finally:
         db.close()
+    
+    await init_kafka()
 
+    # 2. Init Redis
     await init_redis()
 
     yield 
 
     logger.warning("🛑 Shutting down application...")
     
+    # 3. Close Redis
     await close_redis() 
-
+    await close_kafka()
 app = FastAPI(
     title="User Service",
     description="Service quản lý User", 
@@ -68,16 +74,25 @@ app.include_router(login.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 
+# --- 1. SETUP TRACING (OpenTelemetry) ---
+setup_tracing(app)
 
+# --- 2. SETUP METRICS (Prometheus) ---
+# SỬA LỖI Ở ĐÂY: Gom tất cả excluded_handlers vào 1 list duy nhất
 Instrumentator(
+    should_group_status_codes=False,
+    should_ignore_untemplated=True,
+    should_instrument_requests_inprogress=True,
     excluded_handlers=[
-        "/health",
+        ".*admin.*",
         "/metrics",
+        "/health",
         "/docs",
         "/redoc",
         "/openapi.json"
     ]
 ).instrument(app).expose(app)
+
 # --- RATE LIMITER DEMO ---
 
 async def get_user_id_demo(request: Request):

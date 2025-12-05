@@ -6,12 +6,13 @@ from loguru import logger # Import logger
 from ..models.user import User
 from ..schemas.user import UserCreate, UserUpdate
 from ..auth.security import get_password_hash
+from app.core.kafka import send_message
 
 class UserService:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_user(self, user_data: UserCreate) -> User:
+    async def create_user(self, user_data: UserCreate) -> User:
 
         existing_user = self.db.query(User).filter(User.email == user_data.email).first()
         if existing_user:
@@ -30,11 +31,20 @@ class UserService:
             self.db.commit()
             self.db.refresh(new_user)
             logger.info(f"Created user: {new_user.email}")
-            return new_user
         except Exception as e:
             self.db.rollback()
             logger.error(f"Error creating user {user_data.email}: {e}")
             raise HTTPException(status_code=500, detail="Internal Server Error")
+        try:
+            await send_message("user_events", {
+                "event": "USER_CREATED",
+                "user_id": new_user.id,
+                "email": new_user.email
+            })
+        except Exception as e:
+            logger.error(f"❌ Failed to send Kafka event for mail {new_user.email}")
+
+        return new_user
 
     def update_user(self, user_id: int, user_update: UserUpdate) -> User:
         user = self.db.query(User).filter(User.id == user_id).first()

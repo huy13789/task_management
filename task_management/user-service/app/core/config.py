@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     # admin account
     FIRST_SUPERUSER: str
     FIRST_SUPERUSER_PASSWORD: str
+    KAFKA_BOOTSTRAP_SERVERS: str
     
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 

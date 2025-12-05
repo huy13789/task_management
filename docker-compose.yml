@@ -46,6 +46,9 @@ services:
       - FIRST_SUPERUSER=${FIRST_SUPERUSER}
       - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
       - TZ=Asia/Ho_Chi_Minh
+      - OTEL_SERVICE_NAME=user-service         
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317 
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
     depends_on:
       postgres:
         condition: service_healthy
@@ -138,7 +141,10 @@ services:
       - /app/.venv     
     environment:
       - WATCHFILES_FORCE_POLLING=true
-      - DATABASE_URL=${DATABASE_URL}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092 # Cổng nội bộ
+      - OTEL_SERVICE_NAME=notification-service # Tên hiển thị trên Tempo
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - TZ=Asia/Ho_Chi_Minh
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       postgres:
@@ -181,7 +187,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d postgres"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - app_network
 
@@ -281,7 +287,71 @@ services:
       - app_network
     depends_on:
       - prometheus
+# -------------------------------------------------------
+# 11. LOKI + PROMTAIL (Logging)
+# -------------------------------------------------------
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100" #http port: http://loki:3100
+    volumes:
+      - ./docker/loki/local-config.yaml:/etc/loki/local-config.yaml
+    restart: unless-stopped
+    networks:
+      - app_network
 
+
+#-------------------------------------------------------
+# 12. PROMTAIL (Log shipper)
+# -------------------------------------------------------
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    volumes:
+      # Mount file cấu hình
+      - ./docker/promtail/config.yml:/etc/promtail/config.yml
+      # Mount socket docker để đọc log các container khác
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount thư mục log docker
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml  
+    depends_on:
+      - loki
+    restart: unless-stopped
+    networks:
+      - app_network
+# -------------------------------------------------------
+# 13. TEMPO (Distributed Tracing)
+# -------------------------------------------------------
+  tempo:
+    image: grafana/tempo:2.2.0
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./docker/tempo/tempo.yaml:/etc/tempo.yaml
+    ports:
+      - "3200:3200" #  http://tempo:3200
+      - "4317:4317" # Cổng OTLP gRPC để Code Python bắn Trace vào
+    networks:
+      - app_network
+# -------------------------------------------------------
+# 14. KAFKA UI (Giao diện quản lý Kafka)
+# -------------------------------------------------------
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8090:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    networks:
+      - app_network
+    depends_on:
+      - kafka
 networks:
   app_network:
     driver: bridge

@@ -14,7 +14,11 @@ WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
 
-RUN uv sync --frozen
+COPY requirements.txt .
+
+RUN uv pip install --system --no-cache -r requirements.txt
+
+RUN uv sync
 
 COPY . .
 
