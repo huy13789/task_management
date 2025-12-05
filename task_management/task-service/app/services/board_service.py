@@ -5,7 +5,7 @@ from loguru import logger
 from sqlalchemy.orm import Session, joinedload
 from starlette import status
 
-from ..schemas.board import BoardCreate
+from ..schemas.board import BoardCreate, BoardMemberCreate
 from ..models.task import Board, BoardMember, BoardVisibility, Column
 
 
@@ -123,3 +123,49 @@ class BoardService:
             self.db.commit()
             logger.info(f"User {user_id} closed board {board_id}")
             return {"message": "Board closed successfully"}
+
+    def add_member(self, board_id: int, member_data: BoardMemberCreate, current_user_id: int):
+        board_member = self.db.query(BoardMember).filter(
+            BoardMember.board_id == board_id,
+            BoardMember.user_id == current_user_id,
+            BoardMember.role == "admin"
+        ).first()
+
+        if not board_member:
+            raise HTTPException(status_code=403, detail="Only Board Admin can add members")
+
+        existing_member = self.db.query(BoardMember).filter(
+            BoardMember.board_id == board_id,
+            BoardMember.user_id == member_data.user_id
+        ).first()
+
+        if existing_member:
+            raise HTTPException(status_code=400, detail="User is already a member of this board")
+
+        new_member = BoardMember(
+            board_id=board_id,
+            user_id=member_data.user_id,
+            role=member_data.role
+        )
+
+        try:
+            self.db.add(new_member)
+            self.db.commit()
+            return new_member
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Error adding member: {e}")
+            raise HTTPException(status_code=500, detail="Failed to add member")
+
+
+    def get_board_members(self, board_id: int, current_user_id: int):
+        member = self.db.query(BoardMember).filter(
+            BoardMember.board_id == board_id,
+            BoardMember.user_id == current_user_id
+        ).first()
+
+        if not member:
+            pass
+
+        members = self.db.query(BoardMember).filter(BoardMember.board_id == board_id).all()
+        return members

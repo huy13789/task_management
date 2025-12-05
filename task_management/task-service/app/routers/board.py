@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, status, Query
 
-from ..schemas.board import BoardResponse, BoardCreate, BoardDetailResponse
+from ..schemas.board import BoardResponse, BoardCreate, BoardDetailResponse, BoardMemberResponse, BoardMemberCreate
 from ..services.board_service import BoardService
 from ..api.deps import SessionDep, CurrentUser
 
@@ -49,3 +49,22 @@ def delete_board(
         user_id=current_user.id, 
         permanent=permanent
     )
+
+
+@router.post("/{board_id}/members", response_model=BoardMemberResponse)
+def add_board_member(
+    board_id: int,
+    member_data: BoardMemberCreate,
+    db: SessionDep,
+    current_user: CurrentUser
+):
+    return BoardService(db).add_member(board_id, member_data, current_user.id)
+
+
+@router.get("/{board_id}/members", response_model=List[BoardMemberResponse])
+def get_board_members(
+    board_id: int,
+    db: SessionDep,
+    current_user: CurrentUser
+):
+    return BoardService(db).get_board_members(board_id, current_user.id)

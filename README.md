@@ -58,6 +58,12 @@ Hệ thống được thiết kế chia nhỏ thành các dịch vụ độc l�
 ### 1. Cài đặt
   ### Docker, Postgrel, Setup uv
 
+    Cài đặt dependencies và khóa phiên bản:
+  ```bash
+  uv pip install --system --no-cache -r requirements_Tracking.txt
+  uv lock
+  ````
+
 ## 2. Khởi Chạy Dự Án (Running)
   ```bash
   docker-compose up -d --build

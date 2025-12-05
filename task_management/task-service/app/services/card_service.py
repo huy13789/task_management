@@ -2,8 +2,8 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 from starlette import status
 
-from ..schemas.card import CardCreate, CardUpdate
-from ..models.task import Card, BoardMember, Board, Column
+from ..schemas.card import CardCreate, CardUpdate, CardAssignmentCreate
+from ..models.task import Card, BoardMember, Board, Column, CardAssignment
 
 POSITION_GAP = 65536.0
 
@@ -200,3 +200,59 @@ class CardService:
         except Exception as e:
             self.db.rollback()
             raise HTTPException(status_code=500, detail=f"Failed to restore card: {str(e)}")
+
+    def add_assignee(self, card_id: int, assignment_data: CardAssignmentCreate, current_user_id: int):
+        card = self.db.query(Card).options(joinedload(Card.column)).filter(Card.id == card_id).first()
+        if not card:
+            raise HTTPException(status_code=404, detail="Card not found")
+
+        board_id = card.column.board_id
+
+        self._check_column_board_member(card.column_id, current_user_id)
+
+        target_user_in_board = self.db.query(BoardMember).filter(
+            BoardMember.board_id == board_id,
+            BoardMember.user_id == assignment_data.user_id
+        ).first()
+
+        if not target_user_in_board:
+            raise HTTPException(
+                status_code=400,
+                detail="User must be a member of the Board before being assigned to a card"
+            )
+
+        existing_assignment = self.db.query(CardAssignment).filter(
+            CardAssignment.card_id == card_id,
+            CardAssignment.user_id == assignment_data.user_id
+        ).first()
+
+        if existing_assignment:
+            raise HTTPException(status_code=409, detail="User already assigned to this card")
+
+        new_assignment = CardAssignment(
+            card_id=card_id,
+            user_id=assignment_data.user_id,
+            role="member"
+        )
+
+        try:
+            self.db.add(new_assignment)
+            self.db.commit()
+            self.db.refresh(new_assignment)
+            return new_assignment
+        except Exception as e:
+            self.db.rollback()
+            raise HTTPException(status_code=500, detail=f"Failed to assign user: {str(e)}")
+
+    def get_card_assignees(self, card_id: int, current_user_id: int):
+        card = self.db.query(Card).options(joinedload(Card.column)).filter(Card.id == card_id).first()
+        if not card:
+            raise HTTPException(status_code=404, detail="Card not found")
+
+        self._check_column_board_member(card.column_id, current_user_id)
+
+        assignments = self.db.query(CardAssignment).filter(
+            CardAssignment.card_id == card_id
+        ).all()
+
+        return assignments

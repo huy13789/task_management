@@ -1,8 +1,10 @@
+from typing import List
+
 from fastapi import APIRouter
 from fastapi.params import Query
 from starlette import status
 
-from ..schemas.card import CardResponse, CardCreate, CardUpdate
+from ..schemas.card import CardResponse, CardCreate, CardUpdate, CardAssignmentCreate, CardAssignmentResponse
 from ..api.deps import SessionDep, CurrentUser
 from ..services.card_service import CardService
 
@@ -49,3 +51,20 @@ def unarchived_column(
         current_user: CurrentUser
 ):
     return CardService(db).unarchived_card(card_id, user_id=current_user.id)
+
+@router.post("/{card_id}/assignees", response_model=CardAssignmentResponse)
+def add_card_assignee(
+    card_id: int,
+    assignment_data: CardAssignmentCreate,
+    db: SessionDep,
+    current_user: CurrentUser
+):
+    return CardService(db).add_assignee(card_id, assignment_data, current_user.id)
+
+@router.get("/{card_id}/assignees", response_model=List[CardAssignmentResponse])
+def get_card_assignees(
+        card_id: int,
+        db: SessionDep,
+        current_user: CurrentUser
+):
+    return CardService(db).get_card_assignees(card_id, current_user.id)

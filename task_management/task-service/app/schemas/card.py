@@ -32,3 +32,17 @@ class CardUpdate(BaseModel):
     new_index: Optional[int] = None
     column_id: Optional[int] = None
     position: Optional[float] = None
+
+# Input
+class CardAssignmentCreate(BaseModel):
+    user_id: int
+
+# Output
+class CardAssignmentResponse(BaseModel):
+    card_id: int
+    user_id: int
+    role: str
+    assigned_at: datetime
+
+    class Config:
+        from_attributes = True
